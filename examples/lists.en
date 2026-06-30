@@ -1,0 +1,30 @@
+# List processing with total functions.
+#
+# There is no out-of-bounds crash: `get` returns `Option[T]`, so the absence
+# of an element is a value you must handle, not an exception waiting to happen.
+# Recursion over `[]` / `head :: tail` is exhaustive -- forget a case and the
+# program will not compile.
+
+fn sum(xs: List[Int]) -> Int = match xs {
+    [] => 0,
+    h :: t => h + sum(t),
+}
+
+fn map_double(xs: List[Int]) -> List[Int] = match xs {
+    [] => [],
+    h :: t => (h * 2) :: map_double(t),
+}
+
+fn at(xs: List[Int], i: Int) -> Text = match get(xs, i) {
+    Some(v) => int_to_text(v),
+    None => "<out of range>",
+}
+
+fn main() -> Unit !io = {
+    let nums = [1, 2, 3, 4, 5];
+    let doubled = map_double(nums);
+    print("sum      = " + int_to_text(sum(nums)));
+    print("doubled  = sum " + int_to_text(sum(doubled)));
+    print("nums[2]  = " + at(nums, 2));
+    print("nums[99] = " + at(nums, 99))
+}

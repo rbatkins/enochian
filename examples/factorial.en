@@ -1,0 +1,17 @@
+# Contracts as executable specifications.
+#
+# `requires` states a precondition the caller must satisfy; `ensures` states a
+# postcondition the function guarantees (it may refer to `result`). Both are
+# ordinary, *pure* boolean expressions, checked at runtime. A violated
+# contract aborts loudly as a programmer bug -- it is never silent and never
+# catchable as ordinary control flow.
+
+fn fact(n: Int) -> Int
+    requires n >= 0
+    ensures result >= 1 =
+    if n == 0 then 1 else n * fact(n - 1)
+
+fn main() -> Unit !io = {
+    let value = fact(6);
+    print("6! = " + int_to_text(value))
+}

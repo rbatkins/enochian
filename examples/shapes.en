@@ -1,0 +1,28 @@
+# Sum types and records, with exhaustive matching.
+#
+# `Shape` enumerates exactly the cases that exist. `area` must handle every
+# one; adding a new variant later turns every non-exhaustive match into a
+# compile error, so the type checker hands you a to-do list instead of letting
+# a forgotten case become a runtime surprise.
+
+type Shape =
+      Circle(Float)
+    | Rectangle(Float, Float)
+    | Triangle(Float, Float)
+
+record Named { label: Text, shape: Shape }
+
+fn area(s: Shape) -> Float = match s {
+    Circle(r) => 3.14159 * r * r,
+    Rectangle(w, h) => w * h,
+    Triangle(base, height) => 0.5 * base * height,
+}
+
+fn describe(n: Named) -> Text =
+    n.label + " has area " + float_to_text(area(n.shape))
+
+fn main() -> Unit !io = {
+    print(describe(Named { label: "disc", shape: Circle(2.0) }));
+    print(describe(Named { label: "tile", shape: Rectangle(3.0, 4.0) }));
+    print(describe(Named { label: "wedge", shape: Triangle(6.0, 2.0) }))
+}

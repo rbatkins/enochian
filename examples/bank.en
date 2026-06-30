@@ -1,0 +1,29 @@
+# Errors as values, not exceptions.
+#
+# A withdrawal can fail in two distinct ways. Instead of throwing, `withdraw`
+# returns `Result[Account, Text]`: the success and failure types are both in
+# the signature, so a caller cannot forget to handle failure -- the match is
+# exhaustive or it does not compile. The `Account` is immutable; `withdraw`
+# returns a new one rather than mutating shared state.
+
+record Account { owner: Text, balance: Int }
+
+fn withdraw(acct: Account, amount: Int) -> Result[Account, Text] =
+    if amount <= 0 then
+        Err("amount must be positive")
+    else if amount > acct.balance then
+        Err("insufficient funds")
+    else
+        Ok(Account { owner: acct.owner, balance: acct.balance - amount })
+
+fn report(r: Result[Account, Text]) -> Text = match r {
+    Ok(a) => a.owner + " now has " + int_to_text(a.balance),
+    Err(msg) => "declined: " + msg,
+}
+
+fn main() -> Unit !io = {
+    let acct = Account { owner: "Grace", balance: 100 };
+    print(report(withdraw(acct, 30)));
+    print(report(withdraw(acct, 250)));
+    print(report(withdraw(acct, 0 - 5)))
+}

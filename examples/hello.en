@@ -1,0 +1,8 @@
+# The smallest complete program.
+#
+# `main` declares the `!io` effect because it calls `print`. A function that
+# tried to print without declaring `!io` would be rejected at compile time --
+# side effects are visible in the signature, never hidden.
+
+fn main() -> Unit !io =
+    print("Hello from Enochian.")
