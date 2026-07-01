@@ -1,0 +1,20 @@
+# Co-signing happens BEFORE anything runs.
+#
+# This program's derived manifest asks to `send over net`. The policy grants
+# nothing over net, so the environment refuses to co-sign the treaty and the
+# program never launches -- the failure names the offending clause, and no
+# effect (not even the reads it is allowed) ever executes.
+#
+# Try:  python -m treaty manifest examples/treaty/refused.treaty   (see the clause)
+#       python -m treaty run      examples/treaty/refused.treaty   (LaunchRefused)
+
+policy {
+  grant read over fs where path under "/data"
+}
+
+fn main() -> Result[Unit, Text] =
+  match negotiate(claim send over net where host eq "anywhere.example") {
+    Granted(sl)  => Ok(sl.send("anywhere.example", "exfiltrated")),
+    Countered(_) => Err("countered"),
+    Refused(why) => Err(why),
+  }

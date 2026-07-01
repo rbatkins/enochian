@@ -4,15 +4,16 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "enochian"
-version = "0.1.0"
-description = "A small programming language designed from first principles for AI authorship, efficiency, and minimal bugs."
+version = "0.2.0"
+description = "Two languages designed from first principles for AI authorship: Enochian (a safety language) and Treaty (an empty-world capability-negotiation language)."
 readme = "README.md"
 requires-python = ">=3.8"
 license = { text = "MIT" }
-keywords = ["programming-language", "compiler", "interpreter", "type-system", "ai"]
+keywords = ["programming-language", "compiler", "interpreter", "type-system", "capabilities", "ai"]
 
 [project.scripts]
 enochian = "enochian.cli:main"
+treaty = "treaty.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

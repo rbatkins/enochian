@@ -1,0 +1,43 @@
+# The flagship Treaty program.
+#
+# The world starts EMPTY. There is no `read`, no `send`, no `open`. To touch the
+# filesystem or the network the program must NEGOTIATE for the power: construct
+# a claim (pure data), present it, and receive Granted / Countered / Refused.
+#
+# The policy block below is the ENVIRONMENT's half of the treaty. Here it grants
+# read access only under /data/today, grants send only to backup.internal with a
+# cumulative 100-byte budget, and explicitly refuses all filesystem writes.
+
+policy {
+  grant read  over fs  where path under "/data/today"
+  grant send  over net where host eq "backup.internal" and total_le 100
+  refuse write over fs
+}
+
+fn main() -> Result[Unit, Text] =
+  region session {
+    # Ask broadly (all of /data). The environment will not grant that much...
+    match negotiate(claim read over fs where path under "/data") {
+      Refused(why)        => Err(why),
+      Granted(_)          => Err("unexpected: policy was broader than asked"),
+
+      # ...it COUNTERS with a narrower claim (/data/today). We inspect the
+      # counter-offer and re-present it -- negotiation as a fixpoint the
+      # program drives, not a yes/no permission check.
+      Countered(narrower) =>
+        match negotiate(narrower) {
+          Refused(why) => Err(why),
+          Countered(_) => Err("still countered"),
+          Granted(rl)  =>
+            # Now negotiate the egress power, then read one file and send it.
+            # Both verbs are typed against their lease's refinement; the send is
+            # metered against the 100-byte budget. When `session` ends, rl and
+            # sl are revoked -- the powers provably cease to exist.
+            match negotiate(claim send over net where host eq "backup.internal" and total_le 100) {
+              Refused(why) => Err(why),
+              Countered(_) => Err("send countered"),
+              Granted(sl)  => Ok(sl.send("backup.internal", rl.read("/data/today/report.txt"))),
+            },
+        },
+    }
+  }
